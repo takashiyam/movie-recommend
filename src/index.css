@@ -22,12 +22,17 @@
   padding: 0;
 }
 
+html {
+  background: var(--bg);
+}
+
 body {
   font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Segoe UI", sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 
 a {
@@ -43,6 +48,9 @@ a:hover {
   max-width: 900px;
   margin: 0 auto;
   padding: 0 16px 48px;
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  padding-bottom: max(48px, env(safe-area-inset-bottom));
   min-height: 100vh;
 }
 
@@ -91,6 +99,11 @@ button {
 .reload-btn:hover {
   background: var(--surface-hover);
 }
+.pref-toggle:active,
+.reload-btn:active {
+  background: var(--surface-hover);
+  transform: scale(0.96);
+}
 .pref-toggle.active {
   background: var(--accent);
   border-color: var(--accent);
@@ -126,6 +139,9 @@ button {
 .tab:not(.active):hover {
   color: var(--text);
 }
+.tab:active {
+  transform: scale(0.96);
+}
 
 /* Preferences Panel */
 .preferences-panel {
@@ -158,6 +174,9 @@ button {
 .genre-chip:hover {
   border-color: var(--accent);
   color: var(--text);
+}
+.genre-chip:active {
+  transform: scale(0.95);
 }
 .genre-chip.active {
   background: var(--accent);
@@ -357,7 +376,7 @@ button {
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: 16px; /* >= 16px prevents iOS Safari auto-zoom on focus */
   outline: none;
 }
 .api-key-card input:focus {
@@ -373,6 +392,9 @@ button {
 }
 .api-key-card button:hover:not(:disabled) {
   background: var(--accent-hover);
+}
+.api-key-card button:active:not(:disabled) {
+  transform: scale(0.96);
 }
 .api-key-card button:disabled {
   opacity: 0.5;
@@ -416,6 +438,26 @@ footer {
   padding: 32px 0 0;
   color: var(--text-muted);
   font-size: 0.8rem;
+}
+
+/* Touch devices: prevent sticky hover */
+@media (hover: none) {
+  .movie-card:hover {
+    border-color: var(--border);
+    transform: none;
+  }
+  .pref-toggle:hover,
+  .reload-btn:hover {
+    background: var(--surface);
+  }
+  .genre-chip:hover {
+    border-color: var(--border);
+    color: var(--text-muted);
+  }
+  .genre-chip.active:hover {
+    border-color: var(--accent);
+    color: #fff;
+  }
 }
 
 /* Responsive */
