@@ -38,6 +38,47 @@ export async function fetchGenres(): Promise<Genre[]> {
   return data.genres;
 }
 
+export interface DiscoverParams {
+  genres: number[];
+  sortBy: string;
+  keywords: string;
+  minRating: number;
+}
+
+export async function discoverMovies(params: DiscoverParams): Promise<Movie[]> {
+  const queryParams: Record<string, string> = {
+    sort_by: params.sortBy || "popularity.desc",
+    "vote_count.gte": "50",
+    page: "1",
+  };
+  if (params.genres.length > 0) {
+    queryParams.with_genres = params.genres.join(",");
+  }
+  if (params.minRating > 0) {
+    queryParams["vote_average.gte"] = String(params.minRating);
+  }
+
+  const [page1, page2] = await Promise.all([
+    fetchTMDb<TMDbResponse>("/discover/movie", { ...queryParams, page: "1" }),
+    fetchTMDb<TMDbResponse>("/discover/movie", { ...queryParams, page: "2" }),
+  ]);
+
+  let results = [...page1.results, ...page2.results];
+
+  // If keywords provided, also search and merge
+  if (params.keywords) {
+    const searchData = await fetchTMDb<TMDbResponse>("/search/movie", {
+      query: params.keywords,
+      page: "1",
+    });
+    const existingIds = new Set(results.map((m) => m.id));
+    const extraMovies = searchData.results.filter((m) => !existingIds.has(m.id));
+    results = [...extraMovies, ...results];
+  }
+
+  return results;
+}
+
 export function posterUrl(path: string | null, size = "w342"): string {
   if (!path) return "";
   return `https://image.tmdb.org/t/p/${size}${path}`;
