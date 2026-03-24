@@ -39,9 +39,12 @@ export async function fetchUpcomingDramas(page = 1): Promise<TMDbTvResponse> {
 
   return fetchTMDb<TMDbTvResponse>("/discover/tv", {
     with_origin_country: "JP",
+    with_original_language: "ja",
     "first_air_date.gte": formatDateParam(today),
     "first_air_date.lte": formatDateParam(oneMonthLater),
+    without_genres: "16",
     sort_by: "first_air_date.asc",
+    timezone: "Asia/Tokyo",
     page: String(page),
   });
 }
@@ -54,9 +57,12 @@ export async function fetchRecentDramas(page = 1): Promise<TMDbTvResponse> {
 
   return fetchTMDb<TMDbTvResponse>("/discover/tv", {
     with_origin_country: "JP",
+    with_original_language: "ja",
     "first_air_date.gte": formatDateParam(twoWeeksAgo),
     "first_air_date.lte": formatDateParam(today),
+    without_genres: "16",
     sort_by: "first_air_date.desc",
+    timezone: "Asia/Tokyo",
     page: String(page),
   });
 }
