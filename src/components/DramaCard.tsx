@@ -5,6 +5,7 @@ interface Props {
   drama: Drama;
   genres: Genre[];
   favoriteGenres: number[];
+  onClick?: () => void;
 }
 
 function formatDate(dateStr: string): string {
@@ -40,14 +41,14 @@ function daysUntilAir(dateStr: string): string {
   return `${Math.abs(diffDays)}日前に開始`;
 }
 
-export function DramaCard({ drama, genres, favoriteGenres }: Props) {
+export function DramaCard({ drama, genres, favoriteGenres, onClick }: Props) {
   const poster = posterUrl(drama.poster_path);
   const dramaGenres = genres.filter((g) => drama.genre_ids.includes(g.id));
   const badge = airBadge(drama.first_air_date);
   const countdown = daysUntilAir(drama.first_air_date);
 
   return (
-    <div className="drama-card">
+    <div className="drama-card" onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined}>
       <div className="drama-poster">
         {poster ? (
           <img src={poster} alt={drama.name} loading="lazy" />
