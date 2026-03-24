@@ -7,10 +7,20 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="ドラマガイド" />
+    <link rel="manifest" href="/movie-recommend/manifest.json" />
+    <link rel="icon" href="/movie-recommend/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/movie-recommend/icon-192.png" />
     <title>日本ドラマ新番組ガイド - 放送予定一覧</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/movie-recommend/sw.js");
+        });
+      }
+    </script>
   </body>
 </html>
