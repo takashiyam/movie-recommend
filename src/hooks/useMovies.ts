@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Genre, Movie, MovieTab, UserPreferences } from "../types/movie";
-import { fetchGenres, fetchNowPlaying, fetchUpcoming, scoreMovie } from "../utils/tmdb";
+import type { Drama, Genre, UserPreferences } from "../types/movie";
+import { fetchRecentDramas, fetchTvGenres, fetchUpcomingDramas, scoreDrama } from "../utils/tmdb";
 
-const PREFS_KEY = "movie_recommend_prefs";
+type DramaTab = "upcoming" | "recent";
+
+const PREFS_KEY = "drama_schedule_prefs";
 
 function loadPreferences(): UserPreferences {
   try {
@@ -16,9 +18,9 @@ function savePreferences(prefs: UserPreferences) {
   localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
 }
 
-export function useMovies() {
-  const [tab, setTab] = useState<MovieTab>("now_playing");
-  const [movies, setMovies] = useState<Movie[]>([]);
+export function useDramas() {
+  const [tab, setTab] = useState<DramaTab>("upcoming");
+  const [dramas, setDramas] = useState<Drama[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,13 +38,21 @@ export function useMovies() {
     setError(null);
   }, []);
 
-  const loadMovies = useCallback(async () => {
+  const loadDramas = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const fetcher = tab === "now_playing" ? fetchNowPlaying : fetchUpcoming;
+      const fetcher = tab === "upcoming" ? fetchUpcomingDramas : fetchRecentDramas;
       const [page1, page2] = await Promise.all([fetcher(1), fetcher(2)]);
-      setMovies([...page1.results, ...page2.results]);
+      const allResults = [...page1.results, ...page2.results];
+      // Deduplicate by id
+      const seen = new Set<number>();
+      const unique = allResults.filter((d) => {
+        if (seen.has(d.id)) return false;
+        seen.add(d.id);
+        return true;
+      });
+      setDramas(unique);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Unknown error";
       if (msg === "API_KEY_MISSING") {
@@ -52,7 +62,7 @@ export function useMovies() {
         setError("API キーが無効です。正しいキーを入力してください。");
         setApiKeySet(false);
       } else {
-        setError(`映画データの取得に失敗しました: ${msg}`);
+        setError(`ドラマデータの取得に失敗しました: ${msg}`);
       }
     } finally {
       setLoading(false);
@@ -61,21 +71,30 @@ export function useMovies() {
 
   useEffect(() => {
     if (apiKeySet) {
-      loadMovies();
-      fetchGenres().then(setGenres).catch(() => {});
+      loadDramas();
+      fetchTvGenres().then(setGenres).catch(() => {});
     }
-  }, [apiKeySet, loadMovies]);
+  }, [apiKeySet, loadDramas]);
 
-  const sortedMovies = [...movies].sort((a, b) => {
-    const scoreA = scoreMovie(a, preferences.favoriteGenres, preferences.minRating);
-    const scoreB = scoreMovie(b, preferences.favoriteGenres, preferences.minRating);
+  const sortedDramas = [...dramas].sort((a, b) => {
+    // Primary sort: by first_air_date ascending for upcoming, descending for recent
+    if (tab === "upcoming") {
+      const dateCompare = a.first_air_date.localeCompare(b.first_air_date);
+      if (dateCompare !== 0) return dateCompare;
+    } else {
+      const dateCompare = b.first_air_date.localeCompare(a.first_air_date);
+      if (dateCompare !== 0) return dateCompare;
+    }
+    // Secondary sort: by score
+    const scoreA = scoreDrama(a, preferences.favoriteGenres, preferences.minRating);
+    const scoreB = scoreDrama(b, preferences.favoriteGenres, preferences.minRating);
     return scoreB - scoreA;
   });
 
   return {
     tab,
     setTab,
-    movies: sortedMovies,
+    dramas: sortedDramas,
     genres,
     loading,
     error,
@@ -83,6 +102,6 @@ export function useMovies() {
     setPreferences,
     apiKeySet,
     setApiKey,
-    reload: loadMovies,
+    reload: loadDramas,
   };
 }

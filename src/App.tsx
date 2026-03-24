@@ -1,20 +1,19 @@
 import { useState } from "react";
 import { ApiKeyForm } from "./components/ApiKeyForm";
-import { MovieCard } from "./components/MovieCard";
+import { DramaCard } from "./components/DramaCard";
 import { PreferencesPanel } from "./components/PreferencesPanel";
-import { useMovies } from "./hooks/useMovies";
-import type { MovieTab } from "./types/movie";
+import { useDramas } from "./hooks/useMovies";
 
-const tabs: { key: MovieTab; label: string }[] = [
-  { key: "now_playing", label: "公開中" },
-  { key: "upcoming", label: "公開予定" },
+const tabs = [
+  { key: "upcoming" as const, label: "放送予定" },
+  { key: "recent" as const, label: "最近開始" },
 ];
 
 export default function App() {
   const {
     tab,
     setTab,
-    movies,
+    dramas,
     genres,
     loading,
     error,
@@ -23,7 +22,7 @@ export default function App() {
     apiKeySet,
     setApiKey,
     reload,
-  } = useMovies();
+  } = useDramas();
 
   const [showPrefs, setShowPrefs] = useState(false);
 
@@ -31,8 +30,8 @@ export default function App() {
     return (
       <div className="app">
         <header>
-          <h1>映画レコメンド</h1>
-          <p className="subtitle">日本公開 直前・直後の映画をあなた好みに</p>
+          <h1>日本ドラマ新番組ガイド</h1>
+          <p className="subtitle">この先1ヶ月に放送開始する日本のテレビドラマ</p>
         </header>
         <ApiKeyForm onSubmit={setApiKey} error={error} />
       </div>
@@ -42,14 +41,14 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <h1>映画レコメンド</h1>
-        <p className="subtitle">日本公開 直前・直後の映画をあなた好みに</p>
+        <h1>日本ドラマ新番組ガイド</h1>
+        <p className="subtitle">この先1ヶ月に放送開始する日本のテレビドラマ</p>
         <div className="header-actions">
           <button
             className={`pref-toggle ${showPrefs ? "active" : ""}`}
             onClick={() => setShowPrefs(!showPrefs)}
           >
-            好み設定
+            ジャンル絞込
           </button>
           <button className="reload-btn" onClick={reload} disabled={loading}>
             更新
@@ -78,22 +77,29 @@ export default function App() {
       {loading ? (
         <div className="loading">
           <div className="spinner" />
-          <p>映画データを取得中...</p>
+          <p>ドラマデータを取得中...</p>
         </div>
       ) : (
-        <div className="movie-list">
-          {movies.length === 0 && !error && <p className="empty">映画が見つかりませんでした。</p>}
-          {movies.map((movie, i) => (
-            <MovieCard
-              key={movie.id}
-              movie={movie}
-              genres={genres}
-              favoriteGenres={preferences.favoriteGenres}
-              minRating={preferences.minRating}
-              rank={i + 1}
-            />
-          ))}
-        </div>
+        <>
+          <p className="result-count">
+            {dramas.length > 0
+              ? `${dramas.length}件のドラマが見つかりました`
+              : ""}
+          </p>
+          <div className="drama-list">
+            {dramas.length === 0 && !error && (
+              <p className="empty">該当するドラマが見つかりませんでした。</p>
+            )}
+            {dramas.map((drama) => (
+              <DramaCard
+                key={drama.id}
+                drama={drama}
+                genres={genres}
+                favoriteGenres={preferences.favoriteGenres}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       <footer>
