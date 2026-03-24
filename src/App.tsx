@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ApiKeyForm } from "./components/ApiKeyForm";
 import { DramaCard } from "./components/DramaCard";
+import { DramaDetailModal } from "./components/DramaDetailModal";
 import { PreferencesPanel } from "./components/PreferencesPanel";
 import { useDramas } from "./hooks/useMovies";
 
@@ -25,6 +26,7 @@ export default function App() {
   } = useDramas();
 
   const [showPrefs, setShowPrefs] = useState(false);
+  const [selectedDramaId, setSelectedDramaId] = useState<number | null>(null);
 
   if (!apiKeySet) {
     return (
@@ -96,10 +98,18 @@ export default function App() {
                 drama={drama}
                 genres={genres}
                 favoriteGenres={preferences.favoriteGenres}
+                onClick={() => setSelectedDramaId(drama.id)}
               />
             ))}
           </div>
         </>
+      )}
+
+      {selectedDramaId !== null && (
+        <DramaDetailModal
+          dramaId={selectedDramaId}
+          onClose={() => setSelectedDramaId(null)}
+        />
       )}
 
       <footer>
