@@ -1,4 +1,4 @@
-import type { CastMember, Drama, DramaDetail, Genre, TMDbTvResponse } from "../types/movie";
+import type { CastMember, Drama, DramaDetail, Genre, TMDbTvResponse, WatchProvider } from "../types/movie";
 
 const BASE_URL = "https://api.themoviedb.org/3";
 
@@ -72,13 +72,16 @@ export async function fetchTvGenres(): Promise<Genre[]> {
   return data.genres;
 }
 
-/** Fetch detailed info for a single TV show, including cast */
+/** Fetch detailed info for a single TV show, including cast and watch providers */
 export async function fetchDramaDetail(id: number): Promise<DramaDetail> {
-  const [detail, credits] = await Promise.all([
-    fetchTMDb<Omit<DramaDetail, "cast">>(`/tv/${id}`),
+  const [detail, credits, providers] = await Promise.all([
+    fetchTMDb<Omit<DramaDetail, "cast" | "watchProviders">>(`/tv/${id}`),
     fetchTMDb<{ cast: CastMember[] }>(`/tv/${id}/credits`),
+    fetchTMDb<{ results: Record<string, { flatrate?: WatchProvider[] }> }>(`/tv/${id}/watch/providers`),
   ]);
-  return { ...detail, cast: credits.cast.slice(0, 10) };
+  const jp = providers.results?.JP;
+  const watchProviders = jp?.flatrate ?? [];
+  return { ...detail, cast: credits.cast.slice(0, 10), watchProviders };
 }
 
 export function posterUrl(path: string | null, size = "w342"): string {

@@ -53,6 +53,12 @@ export interface Season {
   poster_path: string | null;
 }
 
+export interface WatchProvider {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string | null;
+}
+
 export interface DramaDetail {
   id: number;
   name: string;
@@ -73,4 +79,5 @@ export interface DramaDetail {
   seasons: Season[];
   homepage: string | null;
   cast: CastMember[];
+  watchProviders: WatchProvider[];
 }
