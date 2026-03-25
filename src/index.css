@@ -654,6 +654,103 @@ footer {
   color: #fff !important;
 }
 
+/* Action buttons (calendar, reminder) */
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.action-btn {
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.action-btn:hover {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+.action-btn:active {
+  transform: scale(0.96);
+}
+.remind-btn.active {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: var(--accent);
+  color: var(--accent-hover);
+}
+
+/* Calendar dropdown */
+.cal-dropdown-wrap {
+  position: relative;
+}
+.cal-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  z-index: 20;
+  min-width: 200px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.cal-option {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 0.82rem;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+  text-decoration: none;
+}
+.cal-option:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.cal-option + .cal-option {
+  border-top: 1px solid var(--border);
+}
+
+/* Watch Providers */
+.watch-providers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.provider-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.provider-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+.provider-name {
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
 /* Touch devices: prevent sticky hover */
 @media (hover: none) {
   .drama-card:hover {

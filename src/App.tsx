@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ApiKeyForm } from "./components/ApiKeyForm";
 import { DramaCard } from "./components/DramaCard";
 import { DramaDetailModal } from "./components/DramaDetailModal";
 import { PreferencesPanel } from "./components/PreferencesPanel";
 import { useDramas } from "./hooks/useMovies";
+import { checkAndNotify } from "./utils/notifications";
 
 const tabs = [
   { key: "upcoming" as const, label: "放送予定" },
@@ -27,6 +28,10 @@ export default function App() {
 
   const [showPrefs, setShowPrefs] = useState(false);
   const [selectedDramaId, setSelectedDramaId] = useState<number | null>(null);
+
+  useEffect(() => {
+    checkAndNotify();
+  }, []);
 
   if (!apiKeySet) {
     return (

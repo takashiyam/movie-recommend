@@ -1,5 +1,6 @@
 import type { Drama, Genre } from "../types/movie";
 import { posterUrl } from "../utils/tmdb";
+import { getDayOfWeek } from "../utils/calendar";
 
 interface Props {
   drama: Drama;
@@ -63,7 +64,7 @@ export function DramaCard({ drama, genres, favoriteGenres, onClick }: Props) {
           <p className="drama-original-title">{drama.original_name}</p>
         )}
         <div className="drama-meta">
-          <span className="drama-date">{formatDate(drama.first_air_date)}</span>
+          <span className="drama-date">{formatDate(drama.first_air_date)}({getDayOfWeek(drama.first_air_date)})</span>
           {countdown && <span className="drama-countdown">{countdown}</span>}
           {drama.vote_average > 0 && (
             <span className="drama-rating">

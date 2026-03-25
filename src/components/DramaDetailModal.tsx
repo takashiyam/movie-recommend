@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { DramaDetail } from "../types/movie";
 import { fetchDramaDetail, posterUrl } from "../utils/tmdb";
+import { getDayOfWeek, googleCalendarUrl, downloadIcs } from "../utils/calendar";
+import { addReminder, removeReminder, hasReminder, requestNotificationPermission } from "../utils/notifications";
 
 interface Props {
   dramaId: number;
@@ -17,6 +19,8 @@ export function DramaDetailModal({ dramaId, onClose }: Props) {
   const [detail, setDetail] = useState<DramaDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reminded, setReminded] = useState(() => hasReminder(dramaId));
+  const [showCalMenu, setShowCalMenu] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,6 +53,23 @@ export function DramaDetailModal({ dramaId, onClose }: Props) {
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) onClose();
+  };
+
+  const handleToggleReminder = async () => {
+    if (reminded) {
+      removeReminder(dramaId);
+      setReminded(false);
+    } else {
+      const granted = await requestNotificationPermission();
+      if (!granted) {
+        alert("通知を受け取るにはブラウザの通知許可が必要です");
+        return;
+      }
+      if (detail) {
+        addReminder({ id: detail.id, name: detail.name, first_air_date: detail.first_air_date });
+        setReminded(true);
+      }
+    }
   };
 
   return (
@@ -94,10 +115,50 @@ export function DramaDetailModal({ dramaId, onClose }: Props) {
                     {detail.vote_average > 0 && (
                       <span className="modal-rating">★ {detail.vote_average.toFixed(1)}</span>
                     )}
-                    <span className="modal-date">{formatDate(detail.first_air_date)}</span>
+                    <span className="modal-date">
+                      {formatDate(detail.first_air_date)}
+                      {detail.first_air_date && `(${getDayOfWeek(detail.first_air_date)})`}
+                    </span>
                     {detail.status && <span className="modal-status">{detail.status}</span>}
                   </div>
                 </div>
+              </div>
+
+              {/* Calendar & Reminder buttons */}
+              <div className="modal-actions">
+                <div className="cal-dropdown-wrap">
+                  <button
+                    className="action-btn cal-btn"
+                    onClick={() => setShowCalMenu(!showCalMenu)}
+                  >
+                    📅 カレンダーに追加
+                  </button>
+                  {showCalMenu && (
+                    <div className="cal-dropdown">
+                      <a
+                        href={googleCalendarUrl(detail)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="cal-option"
+                        onClick={() => setShowCalMenu(false)}
+                      >
+                        Google カレンダー
+                      </a>
+                      <button
+                        className="cal-option"
+                        onClick={() => { downloadIcs(detail); setShowCalMenu(false); }}
+                      >
+                        iCal (.ics) ダウンロード
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <button
+                  className={`action-btn remind-btn ${reminded ? "active" : ""}`}
+                  onClick={handleToggleReminder}
+                >
+                  {reminded ? "🔔 通知ON" : "🔕 放送開始を通知"}
+                </button>
               </div>
 
               {detail.networks.length > 0 && (
@@ -114,6 +175,12 @@ export function DramaDetailModal({ dramaId, onClose }: Props) {
               <div className="modal-section">
                 <h4>番組情報</h4>
                 <div className="modal-info-grid">
+                  {detail.first_air_date && (
+                    <div className="info-item">
+                      <span className="info-label">放送開始</span>
+                      <span className="info-value">{formatDate(detail.first_air_date)}({getDayOfWeek(detail.first_air_date)})</span>
+                    </div>
+                  )}
                   {detail.number_of_seasons > 0 && (
                     <div className="info-item">
                       <span className="info-label">シーズン</span>
@@ -128,12 +195,33 @@ export function DramaDetailModal({ dramaId, onClose }: Props) {
                   )}
                   {detail.episode_run_time.length > 0 && (
                     <div className="info-item">
-                      <span className="info-label">放送時間</span>
+                      <span className="info-label">1話あたり</span>
                       <span className="info-value">{detail.episode_run_time[0]}分</span>
                     </div>
                   )}
                 </div>
               </div>
+
+              {/* Watch Providers (streaming) */}
+              {detail.watchProviders.length > 0 && (
+                <div className="modal-section">
+                  <h4>配信サービス</h4>
+                  <div className="watch-providers">
+                    {detail.watchProviders.map((wp) => (
+                      <div key={wp.provider_id} className="provider-item">
+                        {wp.logo_path && (
+                          <img
+                            src={posterUrl(wp.logo_path, "w45")}
+                            alt={wp.provider_name}
+                            className="provider-logo"
+                          />
+                        )}
+                        <span className="provider-name">{wp.provider_name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {detail.genres.length > 0 && (
                 <div className="modal-section">
